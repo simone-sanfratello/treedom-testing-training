@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/test/trees.js"
+            "program": "${workspaceFolder}/test/integration/trees.test.js"
         }
     ]
 }

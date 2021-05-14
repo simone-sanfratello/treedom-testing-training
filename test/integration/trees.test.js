@@ -1,25 +1,19 @@
 'use strict'
 
+process.env.DATABASE_HOST = 'localhost'
+process.env.DATABASE_PORT = 5432
+process.env.DATABASE_USER = 'pg'
+process.env.DATABASE_PASS = 'none'
+process.env.DATABASE_NAME = 'tree'
+
 const t = require('tap')
 const helper = require('../helper')
+const config = require('../../lib/config')
 
 let fastify
 
-process.env.DB_HOST = 'localhost'
-process.env.DB_PORT = 5432
-process.env.DB_USER = 'pg'
-process.env.DB_PASS = 'none'
-process.env.DB_DB = 'tree'
-
 t.before(async () => {
-  await helper.startDatabase({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    pass: process.env.DB_PASS,
-    db: process.env.DB_DB
-  })
-
+  await helper.startDatabase(config.database)
   const { app } = require('../../app')
   fastify = app()
 })
@@ -30,8 +24,11 @@ t.teardown(async () => {
 })
 
 t.test('should get all trees types', async (t) => {
+  // arrange
+  await helper.fillTableTrees([{ id: '1', type: 'ciliegio' }, { id: '2', type: 'pesco' }])
+
   // act
-  const query = '{ trees { id, type } }'
+  const query = '{ trees { ID, type } }'
   const response = await fastify.inject({
     method: 'POST',
     url: '/graphql',
@@ -39,5 +36,10 @@ t.test('should get all trees types', async (t) => {
   })
 
   // assert
-  t.same(JSON.parse(response.body), { data: { trees: [{ id: '1', type: 'ciliegio' }, { id: '2', type: 'pesco' }] } })
+  t.same(response.json(), {
+    data: {
+      trees:
+        [{ ID: '1', type: 'ciliegio' }, { ID: '2', type: 'pesco' }]
+    }
+  })
 })
